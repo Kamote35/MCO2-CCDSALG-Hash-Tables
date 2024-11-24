@@ -12,9 +12,9 @@ int isPrime(int number) {
 
 // Find the nearest prime greater than n * 1.1
 int nearestPrime(int n) {
-    int candidate = (int)ceil(n * 1.1);
+    int candidate = (int)ceil(n * 1.1); // immediately above n * 1.1
     while (!isPrime(candidate)) {
-        candidate++;
+        candidate++; // increment until prime
     }
     return candidate;
 }
@@ -23,9 +23,10 @@ int nearestPrime(int n) {
 HashTable* createHashTable(int size) {
     HashTable* hashTable = (HashTable*)malloc(sizeof(HashTable));
     hashTable->size = size;
-    hashTable->table = (Node**)malloc(size * sizeof(Node*));
+    hashTable->table = (HashTableEntry*)malloc(size * sizeof(HashTableEntry));
     for (int i = 0; i < size; i++) {
-        hashTable->table[i] = NULL;
+        hashTable->table[i].key = NULL;
+        hashTable->table[i].isOccupied = 0;
     }
     return hashTable;
 }
@@ -41,13 +42,34 @@ unsigned int hashFunction(const char* key, int size) {
 
 // Insert a key-value pair into the hash table
 void insert(HashTable* hashTable, const char* key, int value) {
-    unsigned int index = hashFunction(key, hashTable->size);
+    // Check if the key already exists in the hash table
+    if (search(hashTable, key) != -1) {
+        printf("Key '%s' already exists in the hash table.\n", key);
+        return;
+    }
 
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    newNode->key = strdup(key);
-    newNode->value = value;
-    newNode->next = hashTable->table[index];
-    hashTable->table[index] = newNode;
+    unsigned int index = hashFunction(key, hashTable->size);
+    unsigned int originalIndex = index;
+    int i = 1;
+
+    while (hashTable->table[index] != NULL && strcmp(hashTable->table[index]->key, key) != 0) {
+        index = (originalIndex + i * i) % hashTable->size;
+        i++;
+        if (i >= hashTable->size) {
+            printf("Hash table is full, cannot insert %s\n", key);
+            return;
+        }
+    }
+
+    if (hashTable->table[index] == NULL) {
+        hashTable->table[index] = (Node*)malloc(sizeof(Node));
+        hashTable->table[index]->key = strdup(key);
+        hashTable->table[index]->value = value;
+        hashTable->table[index]->isOccupied = 1;
+    } else {
+        // Update value if the key already exists
+        hashTable->table[index]->value = value;
+    }
 }
 
 // Search for a key in the hash table

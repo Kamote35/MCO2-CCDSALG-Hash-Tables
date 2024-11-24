@@ -11,7 +11,7 @@
 
 typedef char string[MAX_STRING_LENGTH]; // Defines a string with 16 characters
 
-// Node structure for chaining
+// Struct for entering into the Hash Table
 typedef struct {
     char* key;
     int value;
@@ -50,28 +50,44 @@ int nearestPrime(int n);
     */
 HashTable* createHashTable(int size);
     /*
-    Function that creates a new Node
+    Function that creates a new hash table
 
     Parameters:
-    int key: the key of the new Node
-    int value: the value of the new Node
+    int size: an integer representing the number of slots in the hash table.
+   
+    Return:
+    A pointer to the newly created HashTable structure.
+
+    Notes:
+    - The size of the hash table should be a prime number.
+    - Free the allocated memory for the hash table in the main function.
+    
+    */
+
+unsigned int hashFunction(const char* key, int size);
+    /*
+    Function that hashes a key
+
+    Parameters:
+    int key: the key to be hashed
+    int size: the size of the Hash Table
 
     Return:
-    A new Node with the key and value specified
+    The hash value of the key of unsigned int type (since key values are always positive and unsigned int sacrifices MSB for bigger range)
 
     */
-unsigned int hashFunction(const char* key, int size);
 
 void insert(HashTable* hashTable, const char* key, int value);
     /*
-    Function that inserts a new Node in the Hash Table
+    Function that inserts a key-value pair of a unique word into the Hash Table
 
     Parameters:
-    HashTable* hashTable: the Hash Table where the Node will be inserted
-    int key: the key of the new Node
-    int value: the value of the new Node
+    HashTable *hashTable: A pointer to the HashTable structure.
+    int key: A constant character pointer representing the key to be inserted.
+    int value: An integer value associated with the key.
 
     */
+ 
 int search(HashTable* hashTable, const char* key);
     /*
     Function that searches for a key in the Hash Table
