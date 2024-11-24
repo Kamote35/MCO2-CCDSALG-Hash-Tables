@@ -45,52 +45,33 @@ int main() {
         return 1;
     }
 
-    // Create the hash table
+    // Create hash table
     int tableSize = nearestPrime(nWords);
     HashTable* hashTable = createHashTable(tableSize);
 
-    int storedInHomeAddress = 0, notStoredInHomeAddress = 0;
+    int notStoredInHomeAddress = 0; // int storedInHomeAddress = 0;
     int totalComparisons = 0, totalStringsStored = 0;
 
     // Insert words into the hash table
     for (i = 0; i < nWords; i++) {
         if (search(hashTable, words[i]) == -1) { // Avoid duplicates
-            unsigned int homeIndex = hashFunction(words[i], hashTable->size);
-            insert(hashTable, words[i], 1);
-
-            Node* temp = hashTable->table[homeIndex];
-            int comparisons = 1;
-            while (temp->next) {
-                comparisons++;
-                temp = temp->next;
-            }
-
+            insert(hashTable, words[i], 1, &notStoredInHomeAddress, &totalComparisons);
             totalStringsStored++;
-            totalComparisons += comparisons;
-
-            if (comparisons == 1) {
-                storedInHomeAddress++;
-            } else {
-                notStoredInHomeAddress++;
-            }
         }
     }
 
     // Write statistics
     fprintf(pOutputFile, "%d\n%d\n%d\n%d\n%.6f\n",
-            nWords, totalStringsStored, storedInHomeAddress, notStoredInHomeAddress,
+            nWords, totalStringsStored, totalStringsStored - notStoredInHomeAddress, notStoredInHomeAddress,
             (double)totalComparisons / totalStringsStored);
 
     // Write hash table content
     for (i = 0; i < hashTable->size; i++) {
         if (hashTable->table[i]) {
-            Node* temp = hashTable->table[i];
-            while (temp) {
-                unsigned int homeIndex = hashFunction(temp->key, hashTable->size);
-                fprintf(pOutputFile, "%d %s %d %s %d\n",
-                        i, temp->key, homeIndex, (i == homeIndex) ? "YES" : "NO", 1);
-                temp = temp->next;
-            }   
+            unsigned int homeIndex = hashFunction(hashTable->table[i]->key, hashTable->size);
+            fprintf(pOutputFile, "%d %s %d %s %d\n",
+                    i, hashTable->table[i]->key, homeIndex,
+                    (i == homeIndex) ? "YES" : "NO", 1);
         } else {
             fprintf(pOutputFile, "%d --- --- --- ---\n", i);
         }
