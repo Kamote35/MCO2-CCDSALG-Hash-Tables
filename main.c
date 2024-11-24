@@ -3,7 +3,7 @@
 // main.c
 // main module
 int main () {
-   
+   //   Hello, yehey may repo na tayo ayyee
    
    
     // input file name
