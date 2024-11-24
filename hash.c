@@ -1,49 +1,25 @@
-#include <stdio.h>
-#include <math.h>
 #include "hash.h"
+#include <math.h>
 
-// hash.c
-// C source file for hash function, etc
-// define prototype functions here
-
-int isPrime (int number) { // helper function that returns a boolean value
-    if (number <= 1) { // return 0 if number is less than or equal to 1
-        return 0;
+// Check if a number is prime
+int isPrime(int number) {
+    if (number <= 1) return 0;
+    for (int i = 2; i * i <= number; i++) {
+        if (number % i == 0) return 0;
     }
-    for (int i = 2; i < number; i++) { // check if number is divisible by any number from 2 to (number - 1)
-        if (number % i == 0) {
-            return 0; // return 0 if divisible by any number
-        }
+    return 1;
+}
+
+// Find the nearest prime greater than n * 1.1
+int nearestPrime(int n) {
+    int candidate = (int)ceil(n * 1.1);
+    while (!isPrime(candidate)) {
+        candidate++;
     }
-    return 1; // return 1 if prime
+    return candidate;
 }
 
-int nearestPrime (int n) { // helper function that returns the nearest prime 
-    int number = floor(n * 1.1);
-
-    int isFound = 0; // sentinel value used to control the while loop
-    while (!isFound) { // loop until a prime number is found
-        number++; // at first iteration, immediately increments by 1 as stated on the MCO2 specs pdf
-        if (isPrime(number)) {
-            isFound = 1; // break out of the while-loop  
-            return number;
-        }
-    }
-}
-
-int hashTableSize (int n) { // function that returns the Table Size with the requirements specified in the MCO2 specs pdf
-
-    return nearestPrime (n);
-}
-
-Node* createNode(int key, int value) {
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    newNode->key = key;
-    newNode->value = value;
-    newNode->next = NULL;
-    return newNode;
-}
-
+// Create a new hash table
 HashTable* createHashTable(int size) {
     HashTable* hashTable = (HashTable*)malloc(sizeof(HashTable));
     hashTable->size = size;
@@ -54,46 +30,50 @@ HashTable* createHashTable(int size) {
     return hashTable;
 }
 
-int hashFunction(int key, int size) {
-    return key % size;
-}
-
-void insert(HashTable* hashTable, int key, int value) {
-    int index = hashFunction(key, hashTable->size);
-    Node* newNode = createNode(key, value);
-    if (hashTable->table[index] == NULL) {
-        hashTable->table[index] = newNode;
-    } else {
-        Node* temp = hashTable->table[index];
-        while (temp->next != NULL) {
-            temp = temp->next;
-        }
-        temp->next = newNode;
+// Hash function using modulo operation
+unsigned int hashFunction(const char* key, int size) {
+    unsigned int hash = 0;
+    while (*key) {
+        hash = (hash * 31 + *key++) % size;
     }
+    return hash;
 }
 
-int search(HashTable* hashTable, int key) {
-    int index = hashFunction(key, hashTable->size);
-    Node* temp = hashTable->table[index];
-    while (temp != NULL) {
-        if (temp->key == key) {
-            return temp->value;
+// Insert a key-value pair into the hash table
+void insert(HashTable* hashTable, const char* key, int value) {
+    unsigned int index = hashFunction(key, hashTable->size);
+
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->key = strdup(key);
+    newNode->value = value;
+    newNode->next = hashTable->table[index];
+    hashTable->table[index] = newNode;
+}
+
+// Search for a key in the hash table
+int search(HashTable* hashTable, const char* key) {
+    unsigned int index = hashFunction(key, hashTable->size);
+    Node* current = hashTable->table[index];
+    while (current) {
+        if (strcmp(current->key, key) == 0) {
+            return current->value;
         }
-        temp = temp->next;
+        current = current->next;
     }
-    return -1; // Key not found
+    return -1;
 }
 
+// Free the memory used by the hash table
 void freeHashTable(HashTable* hashTable) {
     for (int i = 0; i < hashTable->size; i++) {
-        Node* temp = hashTable->table[i];
-        while (temp != NULL) {
-            Node* toFree = temp;
-            temp = temp->next;
-            free(toFree);
+        Node* current = hashTable->table[i];
+        while (current) {
+            Node* temp = current;
+            current = current->next;
+            free(temp->key);
+            free(temp);
         }
     }
     free(hashTable->table);
     free(hashTable);
 }
-
