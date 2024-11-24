@@ -6,7 +6,7 @@ S11
 Name: Tuazon, Brent Ulysses\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-email:brent_tuazon@dlsu.edu.ph\
+email: brent_tuazon@dlsu.edu.ph\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Github: Brentot
@@ -16,7 +16,7 @@ S11
 Name: Tizon, Lukas Alfonzo\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-email:lukas_tizon@dlsu.edu.ph\
+email: lukas_tizon@dlsu.edu.ph\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Github:
