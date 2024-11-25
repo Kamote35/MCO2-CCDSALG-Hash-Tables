@@ -19,14 +19,26 @@ int nearestPrime(int n) {
     return candidate;
 }
 
-// Create a new hash table
-HashTable* createHashTable(int size) {
+// Create a hash table
+HashTable* createHashTable(int n) {
+    int primeSize = nearestPrime(n);
     HashTable* hashTable = (HashTable*)malloc(sizeof(HashTable));
-    hashTable->size = size;
-    hashTable->table = (Node**)malloc(size * sizeof(Node*));
-    for (int i = 0; i < size; i++) {
+    if (hashTable == NULL) {
+        fprintf(stderr, "Failed to allocate memory for hash table\n");
+        return NULL;
+    }
+    hashTable->table = (HashEntry**)malloc(primeSize * sizeof(HashEntry*));
+    if (hashTable->table == NULL) {
+        fprintf(stderr, "Failed to allocate memory for hash table entries\n");
+        free(hashTable);
+        return NULL;
+    }
+    for (int i = 0; i < primeSize; i++) {
         hashTable->table[i] = NULL;
     }
+    hashTable->size = primeSize;
+    hashTable->notHomeAddress = 0;
+    hashTable->totalStringComparisons = 0;
     return hashTable;
 }
 
@@ -39,98 +51,43 @@ unsigned int hashFunction(const char* key, int size) {
     return hash;
 }
 
-// Quadratic probing for insertion
-/*void insert(HashTable* hashTable, const char* key, int value) {
-    // Check if the key already exists in the hash table
-    if (search(hashTable, key) != -1) {
-        printf("Key '%s' already exists in the hash table.\n", key);
-        return;
-    }
-
+// Insert an entry into the hash table
+int insertEntry(HashTable* hashTable, const char* key, const char* value) {
     unsigned int index = hashFunction(key, hashTable->size);
     unsigned int originalIndex = index;
-    int i = 1;
-
-    while (hashTable->table[index] != NULL && strcmp(hashTable->table[index]->key, key) != 0) {
-        index = (originalIndex + i * i) % hashTable->size;
-        i++;
-        if (i >= hashTable->size) {
-            printf("Hash table is full, cannot insert %s\n", key);
-            return;
-        }
-    }
-
-    if (hashTable->table[index] == NULL) {
-        hashTable->table[index] = (Node*)malloc(sizeof(Node));
-        hashTable->table[index]->key = strdup(key);
-        hashTable->table[index]->value = value;
-        hashTable->table[index]->isOccupied = 1;
-    } else {
-        // Update value if the key already exists
-        hashTable->table[index]->value = value;
-    }
-}
-*/
-
-void insert(HashTable* hashTable, const char* key, int value, int* notStoredInHomeAddress, int* totalComparisons) {
-    unsigned int index = hashFunction(key, hashTable->size);
-    unsigned int originalIndex = index;
-    int i = 1, comparisons = 1;
-
-    while (hashTable->table[index] != NULL && strcmp(hashTable->table[index]->key, key) != 0) {
-        index = (originalIndex + i * i) % hashTable->size;
-        i++;
-        comparisons++;
-        if (i >= hashTable->size) {
-            printf("Hash table is full, cannot insert %s\n", key);
-            return;
-        }
-    }
-
-    if (hashTable->table[index] == NULL) {
-        hashTable->table[index] = (Node*)malloc(sizeof(Node));
-        hashTable->table[index]->key = strdup(key);
-        hashTable->table[index]->value = value;
-        hashTable->table[index]->next = NULL;
-
-        if (index != originalIndex) {
-            (*notStoredInHomeAddress)++; // Increment for relocation
-        }
-    } else {
-        hashTable->table[index]->value = value; // Update value if key exists
-    }
-
-    *totalComparisons += comparisons; // Update total comparisons
-}
-
-
-// Quadratic probing for searching
-int search(HashTable* hashTable, const char* key) {
-    unsigned int index = hashFunction(key, hashTable->size);
-    unsigned int originalIndex = index;
-    int i = 1;
+    int comparisons = 0;
 
     while (hashTable->table[index] != NULL) {
+        comparisons++;
         if (strcmp(hashTable->table[index]->key, key) == 0) {
-            return hashTable->table[index]->value;
+            // Update the value if the key already exists
+            strcpy(hashTable->table[index]->value, value);
+            hashTable->table[index]->stringComparisons += comparisons;
+            hashTable->totalStringComparisons += comparisons;
+            return 0;
         }
-        index = (originalIndex + i * i) % hashTable->size;
-        i++;
-        if (i >= hashTable->size) {
-            return -1; // Not found
+        index = (index + 1) % hashTable->size;
+        if (index == originalIndex) {
+            // The table is full
+            return -1;
         }
     }
-    return -1; // Not found
-}
 
-// Free the memory used by the hash table
-void freeHashTable(HashTable* hashTable) {
-    for (int i = 0; i < hashTable->size; i++) {
-        if (hashTable->table[i] != NULL) {
-            free(hashTable->table[i]->key);
-            free(hashTable->table[i]);
-        }
+    // Insert the new entry
+    HashEntry* newEntry = (HashEntry*)malloc(sizeof(HashEntry));
+    if (newEntry == NULL) {
+        fprintf(stderr, "Failed to allocate memory for hash entry\n");
+        return -1;
     }
-    free(hashTable->table);
-    free(hashTable);
+    strcpy(newEntry->key, key);
+    strcpy(newEntry->value, value);
+    newEntry->stringComparisons = comparisons;
+    hashTable->table[index] = newEntry;
+
+    if (index != originalIndex) {
+        hashTable->notHomeAddress++;
+    }
+    hashTable->totalStringComparisons += comparisons;
+
+    return 0;
 }
